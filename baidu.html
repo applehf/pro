@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>百度搜索</title>
+		<style>
+			* {
+				padding: 0;
+				margin: 0;
+			}
+			
+			a {
+				text-decoration: none;
+			}
+			
+			ul,
+			li {
+				list-style: none;
+			}
+			
+			input,
+			button {
+				border: none;
+				outline: none;
+			}
+			
+			.baiduImg {
+				margin-top: 100px;
+				text-align: center;
+			}
+			
+			.baiduImg img {
+				width: 270px;
+				height: 129px;
+			}
+			
+			.myForm {
+				position: relative;
+				margin: 0 auto;
+				width: 645px;
+				height: 35px;
+				text-align: center;
+			}
+			
+			.myForm .myText {
+				float: left;
+				padding-left: 5px;
+				width: 540px;
+				height: 33px;
+				border: 1px solid #b8b8b8;
+			}
+			
+			.myForm .myBut {
+				float: left;
+				width: 97px;
+				height: 35px;
+				color: #ffffff;
+				background-color: #3385ff;
+			}
+			
+			.ulList {
+				position: absolute;
+				display: none;
+				border: 1px solid #b8b8b8;
+				border-top: 0;
+			}
+			.ulListBg{
+				background-color: darkgray;
+			}
+		</style>
+		<script type="text/javascript" src="js/jquery-2.1.0.js"></script>
+		<script type="text/javascript" src="js/vue.min.js"></script>
+		<script type="text/javascript" src="js/vue-resource.js"></script>
+	</head>
+
+	<body>
+		<div id="box">
+			<div class="baiduImg">
+				<img src="image/bd_logo1.png" />
+			</div>
+			<form class="myForm">
+				<input type="text" value="" class="myText" v-model="imports" @keyup="seek($event)" @keydown.down="cDown()"  @keydown.up="cUp()"  @keydown.enter="cEnter()"/>
+				<input type="button" value="百度一下" class="myBut" />
+			</form>
+			<ul class="ulList">
+				<li v-for="(value,index) in dateList" :class="{ulListBg:(index)==num}">
+					{{value}}
+				</li>
+			</ul>
+		
+		</div>
+	</body>
+
+</html>
+<script type="text/javascript">
+	window.onload = function() {
+		new Vue({
+			el: "#box",
+			data: {
+				dateList: [],
+				imports: "",
+				num:-1
+			},
+			methods: {
+				seek: function(ev) {//交互  
+					if(ev.keyCode==38 || ev.keyCode==40){//为了不让后面代码执行 不然搜素会跟着联动
+						return
+					}
+					this.$http.jsonp('https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su', {
+						wd: this.imports
+					}, {
+						jsonp: 'cb'
+					}).then(function(res) {
+						this.dateList = res.data.s;
+					}, function() {
+
+					});
+					if(this.imports.length!=0){
+						$(".ulList").show()
+					}else{
+						$(".ulList").hide()
+					}
+				},
+				cDown:function(){//键盘上
+					this.num++;
+					if(this.num>=this.dateList.length){
+						this.num=-1
+					};
+					this.imports=this.dateList[this.num]
+//					console.log(this.num++)
+				},
+				cUp:function(){//键盘下
+					this.num--;
+					if(this.num<=0){
+						this.num=this.dateList.length
+					};
+					this.imports=this.dateList[this.num]
+				},
+				cEnter:function(){//回车
+					window.open("https://www.baidu.com/s?wd="+this.imports);
+					this.imports=""
+				}
+			}
+		});
+
+		//
+		$(".ulList").width($(".myText").width());
+		$(".ulList").css({
+			top: $(".myText").offset().top + $(".myText").height()+2,
+			left: $(".myText").offset().left
+		})
+			//	console.log($(".myText").offset().left)
+	}
+</script>
